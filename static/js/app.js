@@ -1,3 +1,4 @@
+// app.js
 let mediaRecorder;
 let audioChunks = [];
 let recognition;
@@ -8,7 +9,7 @@ let lastTranscriptTime = Date.now();
 let silenceTimer = null;
 
 async function startSession() {
-    await say("Здравствуйте, я Shaman работающий на Искуственном Интелекте, ваш семейный помощник. Пожалуйста, закройте глаза, расслабьтесь и расскажите, что вас беспокоит. Когда захотите получить ответ, скажите 'я закончил'. Чтобы завершить сессию, скажите 'на сегодня хватит' или 'продолжим завтра'.");
+    await say("Здравствуйте, я Shaman, ваш ИИ-помощник. Пожалуйста, закройте глаза и расскажите, что вас беспокоит. Скажите 'я закончил' для ответа, или 'на сегодня хватит' чтобы завершить.");
     startRecognitionAndRecording();
 }
 
@@ -16,16 +17,11 @@ function say(text) {
     return new Promise((resolve) => {
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ru-RU';
-        // Когда ИИ начинает говорить — волны анимируются
-        utter.onstart = () => {
-            startWaveAnimation();
-        };
-        // Когда ИИ заканчивает говорить — волны замирают
+        utter.onstart = startWaveAnimation;
         utter.onend = () => {
             stopWaveAnimation();
             resolve();
         };
-
         speechSynthesis.speak(utter);
     });
 }
@@ -38,7 +34,6 @@ async function startRecognitionAndRecording() {
     mediaRecorder.ondataavailable = event => {
         audioChunks.push(event.data);
     };
-
     mediaRecorder.onstop = processAudio;
     mediaRecorder.start();
     startWaveAnimation();
@@ -67,14 +62,15 @@ function startSpeechRecognition() {
             resetSilenceTimer();
         }
 
-        if (transcript.includes('я закончил') || transcript.includes('на сегодня хватит') || transcript.includes('продолжим завтра')) {
-            stopListening();
+        if (transcript.includes('я закончил')) {
+            handleFinishWithAnswer();
+        } else if (transcript.includes('на сегодня хватит') || transcript.includes('продолжим завтра')) {
+            handleImmediateEnd();
         }
     };
 
     recognition.start();
     isListening = true;
-
     monitorSilence();
 }
 
@@ -93,6 +89,31 @@ function stopRecording() {
     }
 }
 
+async function handleFinishWithAnswer() {
+    console.log("Обработка завершения с ответом...");
+    stopListening();
+    await processAudio();
+    await say("Хотите продолжить разговор или завершим сессию?");
+    waitForContinueOrExit();
+}
+
+async function handleImmediateEnd() {
+    console.log("Немедленное завершение сессии...");
+    stopListening();
+    await say("Хорошо, сессия завершена. Будьте здоровы!");
+    setTimeout(() => {
+        window.location.reload();
+    }, 3000);
+}
+
+async function waitForContinueOrExit() {
+    try {
+        await startRecognitionAndRecording();
+    } catch (error) {
+        console.error("Ошибка при возобновлении сессии:", error);
+    }
+}
+
 async function processAudio() {
     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
     const formData = new FormData();
@@ -108,23 +129,15 @@ async function processAudio() {
             const data = await response.json();
 
             if (data.answer) {
-                try {
-                    await backgroundMusic.play();
-                } catch (err) {
-                    console.warn("Не удалось автоматически запустить музыку:", err);
-                }
-
+                try { await backgroundMusic.play(); } catch (err) { console.warn("Не удалось запустить музыку:", err); }
                 await say(data.answer);
                 await fadeOutMusic();
-
-                await say("Я внимательно слушаю вас. Продолжайте, если хотите.");
-                startRecognitionAndRecording();
             }
         } else {
-            console.error("Ошибка ответа от сервера:", response.status);
+            console.error("Ошибка сервера:", response.status);
         }
     } catch (error) {
-        console.error("Ошибка отправки аудио:", error);
+        console.error("Ошибка при отправке аудио:", error);
     }
 }
 
@@ -179,7 +192,7 @@ function monitorSilence() {
             stopWaveAnimation();
             isListening = false;
             recognition.stop();
-            say("Я внимательно вас слушаю...");
+            say("Я вас слушаю...");
             setTimeout(() => {
                 startRecognitionAndRecording();
             }, 5000);
@@ -201,58 +214,5 @@ window.onload = () => {
                 startSession();
             }, 500);
         };
-    } else {
-        startSession();
     }
 };
-
-window.onload = () => {
-    const authContainer = document.getElementById('auth-container');
-    if (authContainer) {
-        loadLoginForm();
-    }
-};
-
-function loadLoginForm() {
-    const authContainer = document.getElementById('auth-container');
-    authContainer.innerHTML = `
-        <form id="login-form">
-            <div class="mb-3">
-                <label for="loginEmail" class="form-label">Email</label>
-                <input type="email" class="form-control" id="loginEmail" required>
-            </div>
-            <div class="mb-3">
-                <label for="loginPassword" class="form-label">Пароль</label>
-                <input type="password" class="form-control" id="loginPassword" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Войти</button>
-        </form>
-        <div class="text-center mt-3">
-            <a href="#" onclick="loadRegisterForm()">Нет аккаунта? Регистрация</a>
-        </div>
-    `;
-}
-
-function loadRegisterForm() {
-    const authContainer = document.getElementById('auth-container');
-    authContainer.innerHTML = `
-        <form id="register-form">
-            <div class="mb-3">
-                <label for="registerName" class="form-label">Имя</label>
-                <input type="text" class="form-control" id="registerName" required>
-            </div>
-            <div class="mb-3">
-                <label for="registerEmail" class="form-label">Email</label>
-                <input type="email" class="form-control" id="registerEmail" required>
-            </div>
-            <div class="mb-3">
-                <label for="registerPassword" class="form-label">Пароль</label>
-                <input type="password" class="form-control" id="registerPassword" required>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
-        </form>
-        <div class="text-center mt-3">
-            <a href="#" onclick="loadLoginForm()">Уже есть аккаунт? Войти</a>
-        </div>
-    `;
-}

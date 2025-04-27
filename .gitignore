@@ -7,6 +7,7 @@
 /*.so
 /*.dylib
 /*.test
+/*txt
 *.out
 
 # OS
@@ -23,5 +24,6 @@
 *.log
 
 # Personal files
+*.txt
 *.wav
 *.mp3
