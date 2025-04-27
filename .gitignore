@@ -1,0 +1,27 @@
+# Go
+/bin/
+/vendor/
+/*.exe
+/*.exe~
+/*.dll
+/*.so
+/*.dylib
+/*.test
+*.out
+
+# OS
+.DS_Store
+
+# Databases
+*.db
+
+# Config
+/configs/*.yaml
+/configs/*.yml
+
+# Logs
+*.log
+
+# Personal files
+*.wav
+*.mp3

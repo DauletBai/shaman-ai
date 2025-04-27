@@ -1,0 +1,48 @@
+package config
+
+import (
+	"fmt"
+	"log/slog"
+	"os"
+	"time"
+
+	"gopkg.in/yaml.v3"
+)
+
+type Config struct {
+	SiteName        string `yaml:"site_name"`
+	SiteDescription string `yaml:"site_description"`
+	CurrentYear     int    `yaml:"current_year"`
+}
+
+// LoadConfig загружает конфигурацию из файла config.yaml
+func LoadConfig(filename string) (*Config, error) {
+	file, err := os.Open(filename)
+	if os.IsNotExist(err) {
+		return nil, fmt.Errorf("файл конфигурации не найден: %s", filename)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var cfg Config
+	if err := yaml.NewDecoder(file).Decode(&cfg); err != nil {
+		return nil, err
+	}
+
+	// Если год не указан, проставляем текущий
+	if cfg.CurrentYear == 0 {
+		cfg.CurrentYear = time.Now().Year()
+	}
+
+	return &cfg, nil
+}
+
+// InitLogger инициализирует глобальный логгер
+func InitLogger() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+}
