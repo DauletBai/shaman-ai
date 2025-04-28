@@ -27,14 +27,15 @@ a {
 }
 
 .bar {
-    width: 6px;
-    height: 6px;
+    width: 12px;
+    height: 12px;
     background: linear-gradient(to bottom, #cccccc, #000000);
     border-radius: 50%;
     transition: all 0.2s ease;
 }
 
 .bar.animate {
+    background: linear-gradient(to bottom, #5c9eff, #0065fa);
     animation: pulse 1.2s infinite ease-in-out;
 }
 
@@ -67,25 +68,8 @@ a {
     }
 }
 
-.button-container {
-    margin-top: 20px;
-}
-
-#start-button {
-    padding: 12px 24px;
-    font-size: 18px;
-    background-color: #999999;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    transition: opacity 0.5s ease, background-color 0.3s, transform 0.3s;
-    opacity: 1;
-}
-
 #start-button:hover {
-    background-color: #666666;
+    background-color: #005ce3;
     transform: scale(1.05);
 }
 

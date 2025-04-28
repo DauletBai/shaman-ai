@@ -15,7 +15,6 @@ type Config struct {
 	CurrentYear     int    `yaml:"current_year"`
 }
 
-// LoadConfig загружает конфигурацию из файла config.yaml
 func LoadConfig(filename string) (*Config, error) {
 	file, err := os.Open(filename)
 	if os.IsNotExist(err) {
@@ -31,7 +30,6 @@ func LoadConfig(filename string) (*Config, error) {
 		return nil, err
 	}
 
-	// Если год не указан, проставляем текущий
 	if cfg.CurrentYear == 0 {
 		cfg.CurrentYear = time.Now().Year()
 	}
@@ -39,7 +37,6 @@ func LoadConfig(filename string) (*Config, error) {
 	return &cfg, nil
 }
 
-// InitLogger инициализирует глобальный логгер
 func InitLogger() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,

@@ -1,16 +1,20 @@
+// cmd/server/main.go
 package main
 
 import (
 	"log"
 	"log/slog"
 	"net/http"
-	"text/template"
+	"html/template"
 
 	"shaman-ai/internal/config"
 	"shaman-ai/internal/handlers"
 )
 
-var appConfig *config.Config
+var (
+	appConfig *config.Config
+	tmpl      *template.Template
+)
 
 func main() {
 	config.InitLogger()
@@ -23,8 +27,10 @@ func main() {
 
 	slog.Info("Конфигурация загружена", "site_name", appConfig.SiteName, "year", appConfig.CurrentYear)
 
+	// Настройка маршрутов
 	mux := http.NewServeMux()
 
+	// Обслуживание статики
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
@@ -36,7 +42,7 @@ func main() {
 			"templates/parts/footer.html",
 			"templates/pages/welcome.html",
 		))
-	
+
 		data := map[string]interface{}{
 			"SiteName":        appConfig.SiteName,
 			"SiteDescription": appConfig.SiteDescription,
@@ -49,6 +55,10 @@ func main() {
 		}
 	})
 
+	// Передаем шаблоны в хендлеры
+	handlers.InitHandlers(appConfig, tmpl)
+
+	// Роуты
 	mux.HandleFunc("/api/dialogue", handlers.DialogueHandler)
 
 	addr := ":8080"
