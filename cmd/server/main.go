@@ -62,7 +62,7 @@ func main() {
 	mux.HandleFunc("/api/dialogue", handlers.DialogueHandler)
 
 	addr := ":8080"
-	slog.Info("Запуск Shaman-AI сервера", "address", addr)
+	slog.Info("Запуск Shaman AI сервера", "address", addr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		slog.Error("Ошибка запуска сервера", "error", err)
 	}

@@ -32,17 +32,3 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка рендеринга страницы", http.StatusInternalServerError)
 	}
 }
-
-// SigninHandler обрабатывает запрос на страницу входа
-func SigninHandler(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{
-		"SiteName":        cfg.SiteName,
-		"SiteDescription": cfg.SiteDescription,
-		"CurrentYear":     time.Now().Year(),
-	}
-
-	err := tmpl.ExecuteTemplate(w, "base.html", data)
-	if err != nil {
-		http.Error(w, "Ошибка рендеринга страницы", http.StatusInternalServerError)
-	}
-}

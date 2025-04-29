@@ -1,5 +1,4 @@
 // static/js/app.js — Голосовое общение с Shaman-AI
-
 let recognition;
 let isListening = false;
 
@@ -11,7 +10,7 @@ window.onload = () => {
             setTimeout(() => {
                 startButton.style.display = 'none';
                 startSession();
-            }, 5000);
+            }, 500);
         };
     }
 };
@@ -77,7 +76,7 @@ async function sendDialogue(userText) {
         // После ответа — снова начать слушать пользователя
         setTimeout(() => {
             startSpeechRecognition();
-        }, 10000);
+        }, 500);
 
     } catch (error) {
         console.error("Ошибка отправки диалога:", error);

@@ -12,6 +12,7 @@
 ## Repository structure:
 cmd/        - Entry point (Go server)
 configs/    - Configuration files (yaml)
+data/       - Dialogues (json)
 internal/   - Main business logic of the project
 scripts/    - Launch scripts, migrations
 static/     - Static files (css, js, svg, mp3)
@@ -25,7 +26,7 @@ README.md   - Project description
 make start
 # 1. Download and unzip the shanraq-ai project
 # 2. Go to the project folder
-cd shanraq-ai
+cd shaman-ai
 
 # 3. Install Ollama (if you haven't already)
 brew install ollama
@@ -39,13 +40,13 @@ ollama pull phi3
 # 6. Install Go dependencies
 go mod tidy
 
-# 7. Start Shanraq AI server
+# 7. Start Shaman AI server
 make run
 
 # 8. Open in browser
 http://localhost:8080
 
-# Shanraq-AI
+# Shaman AI
 
 Therapeutic AI assistant for calm voice sessions.
 
