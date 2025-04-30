@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "Проверка Ollama..."
 if ! pgrep -x "ollama" > /dev/null
 then

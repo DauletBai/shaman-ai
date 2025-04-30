@@ -1,12 +1,13 @@
 # Shaman AI
 
-**Shaman AI** — Family AI assistant for psychological support.
+**AI-shaman** This is your family doctor, psychotherapist, hypnologist.
 
 ## Tech stack:
 - Go 1.24
 - HTML5 + Bootstrap 5.3
 - SQLite (while) / PostgreSQL (Later)
 - Ollama LLM integration
+- Ollama pull phi3
 - Static build, minimal dependencies
 
 ## Repository structure:

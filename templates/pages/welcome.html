@@ -1,3 +1,4 @@
+<!-- templates/pages/welcome.html -->
 {{ define "content" }}
 <div class="text-center">
     <p class="lead">{{.SiteName}} AI {{.SiteDescription}}</p>
@@ -12,7 +13,7 @@
     </div>
 </div>
 <div class="btn-primary">
-    <button id="start-button" type="button" class="btn btn-primary rounded-pill">Start session</button>
+    <button id="start-button" type="button" class="btn btn-lg btn-primary rounded-pill">Start session</button>
 </div>
 <audio id="background-music" src="/static/music/shubert.mp3" preload="auto" loop></audio>
 {{ end }}

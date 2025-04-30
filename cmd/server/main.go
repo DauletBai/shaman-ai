@@ -27,10 +27,8 @@ func main() {
 
 	slog.Info("Конфигурация загружена", "site_name", appConfig.SiteName, "year", appConfig.CurrentYear)
 
-	// Настройка маршрутов
 	mux := http.NewServeMux()
 
-	// Обслуживание статики
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
@@ -55,10 +53,8 @@ func main() {
 		}
 	})
 
-	// Передаем шаблоны в хендлеры
 	handlers.InitHandlers(appConfig, tmpl)
 
-	// Роуты
 	mux.HandleFunc("/api/dialogue", handlers.DialogueHandler)
 
 	addr := ":8080"

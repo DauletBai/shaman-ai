@@ -1,3 +1,4 @@
+// internal/whisper/whisper.go
 package whisper
 
 import (

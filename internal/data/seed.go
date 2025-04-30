@@ -1,3 +1,4 @@
+// internal/data/seed.go
 package data
 
 import (
