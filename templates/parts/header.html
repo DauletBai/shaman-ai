@@ -2,12 +2,15 @@
 {{ define "parts/header.html" }}
 <header class="mb-auto">
     <div>
-    <h5 class="float-md-start mb-0">
-        <img src="/static/brand/shaman.svg" width="32" alt="logotype">
-    </h5>
-    <nav class="nav nav-underline justify-content-center float-md-end">
-        <a class="nav-link py-1 ps-0" href="/">Welcome</a>
-    </nav>
+        <a href="/" class="float-md-start mb-0"><img src="/static/brand/shaman.svg" width="38" alt="Logotype" class="me-2"></a>
+        <nav class="nav nav-masthead justify-content-center float-md-end">
+            <a class="nav-link py-1 px-2{{ if not .IsDashboard }} active{{ end }}" aria-current="page" href="/">Welcome</a>
+            {{/* В будущем можно добавить проверку авторизации, чтобы показывать эту ссылку только залогиненным */}}
+            <a class="nav-link py-1 px-2{{ if .IsDashboard }} active{{ end }}" href="/dashboard">Dashboard</a>
+            {{/* В будущем можно будет показывать "Sign Out", если пользователь залогинен */}}
+            <a class="nav-link py-1 px-2" href="#">Sign In</a>
+            {{/* Если хотите, чтобы Sign In тоже был 'active' на какой-то странице (например, /login), добавьте условие */}}
+        </nav>
     </div>
 </header>
 {{ end }}

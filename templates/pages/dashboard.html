@@ -1,0 +1,43 @@
+<!-- templates/pages/dashboard.html -->
+{{ define "content" }}
+<div class="dashboard-layout">
+    <div class="row g-5">
+        <div class="col-md-3">
+            <aside class="sidebar position-sticky text-start" style="top: 2rem;">
+                <h5 class="mb-3">История сессий</h5>
+                <ul id="session-history" class="list-unstyled text-start">
+                    {{/* Заглушки истории */}}
+                    <li class="mb-2"><a href="#" class="text-decoration-none text-secondary">02.05.25 - Разговор о главном</a></li>
+                    <li class="mb-2"><a href="#" class="text-decoration-none text-secondary">01.05.25 - Проработка диалога</a></li>
+                    <li class="mb-2"><a href="#" class="text-decoration-none text-secondary">30.04.25 - Ознакомительная сессия</a></li>
+                </ul>
+            </aside>
+        </div>
+        <div class="col-md-9">
+            <div class="chat-container">
+                <div id="chat-box" class="chat-box overflow-auto mb-3">
+                    <div class="message assistant mb-2">
+                        <span class="badge bg-info me-2">Shaman</span>
+                        <span>С возвращением! Готов продолжить нашу работу.</span>
+                    </div>
+                    {{/* Сообщения будут добавляться сюда */}}
+                </div>
+                <form id="chat-form" class="d-flex gap-2">
+                    <div class="input-group">
+                        <input id="user-input" type="text" class="form-control rounded-start-3" rows="2" placeholder="Введите ваше сообщение или нажмите микрофон..." aria-label="Recipient's username with two button addons" required></input>
+                        <button id="record-button" class="btn btn-lg btn-success" type="button"><i id="mic-icon" class="bi bi-mic-fill"></i></button>
+                        <button id="send-button" class="btn btn-lg btn-info rounded-end-3" type="submit"><i class="bi bi-send"></i></button>
+                    </div>
+                </form>
+                <div id="loading-indicator" class="text-center mt-2" style="display: none;">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <span class="ms-2">Shaman думает...</span>
+                </div>
+                <div id="speech-error" class="text-center text-danger mt-2" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

@@ -1,61 +1,59 @@
-# Shaman AI
+# Shaman AI (Minimal Text Version)
 
-**AI-shaman** This is your family doctor, psychotherapist, hypnologist.
+AI ассистент для текстовых диалогов, основанный на Ollama. Эта версия сфокусирована на минимализме для тестирования и обучения ИИ через текстовый интерфейс.
 
-## Tech stack:
-- Go 1.24
-- HTML5 + Bootstrap 5.3
-- SQLite (while) / PostgreSQL (Later)
-- Ollama LLM integration
-- Ollama pull phi3
-- Static build, minimal dependencies
+## Технологический стек:
+- Go 1.24+
+- HTML5 + Bootstrap 5.3 (для интерфейса чата)
+- SQLite (для сохранения диалогов)
+- Ollama (локальный запуск LLM) + модель `phi3` (или другая, указанная в конфиге)
 
-## Repository structure:
-cmd/        - Entry point (Go server)
-configs/    - Configuration files (yaml)
-data/       - Dialogues (json)
-internal/   - Main business logic of the project
-scripts/    - Launch scripts, migrations
-static/     - Static files (css, js, svg, mp3)
-templates/  - HTML templates
-Makefile    - Automation of build and launch
-README.md   - Project description
+## Структура Репозитория:
+- `cmd/server/`: Точка входа (запуск Go сервера)
+- `configs/`: Файлы конфигурации (`config.yaml`, `prompt.txt`)
+- `internal/`: Основная бизнес-логика (конфиг, хендлеры, БД, Ollama)
+- `static/`: Статические файлы (CSS, JS)
+- `templates/`: HTML шаблоны (Go Templates)
+- `shaman.db`: Файл базы данных SQLite (создается автоматически)
+- `go.mod`, `go.sum`: Зависимости Go
+- `README.md`: Этот файл
 
-## How to run a project locally:
+## Как запустить проект локально:
 
-```bash
-make start
-# 1. Download and unzip the shanraq-ai project
-# 2. Go to the project folder
-cd shaman-ai
+1.  **Установите Go:** Убедитесь, что у вас установлен Go версии 1.24 или новее ([https://go.dev/doc/install](https://go.dev/doc/install)).
+2.  **Установите Ollama:** Следуйте инструкции на [https://ollama.com/](https://ollama.com/).
+3.  **Запустите Ollama:**
+    ```bash
+    ollama serve
+    ```
+    (Оставьте этот терминал работать в фоне)
+4.  **Загрузите модель LLM:** Откройте *новый* терминал и выполните (используйте модель, указанную в `configs/config.yaml`):
+    ```bash
+    ollama pull phi3
+    ```
+5.  **Клонируйте репозиторий:**
+    ```bash
+    git clone <url-вашего-репозитория> shaman
+    cd shaman
+    ```
+6.  **Загрузите зависимости Go:**
+    ```bash
+    go mod tidy
+    ```
+7.  **Запустите сервер Shaman:**
+    ```bash
+    go run ./cmd/server/main.go
+    ```
+8.  **Откройте в браузере:**
+    Перейдите по адресу [http://localhost:8080](http://localhost:8080)
 
-# 3. Install Ollama (if you haven't already)
-brew install ollama
+Теперь вы можете общаться с ИИ через текстовый интерфейс. Диалоги будут сохраняться в файл `shaman.db`.
 
-# 4. Launch Ollama
-ollama serve
+## Конфигурация
 
-# 5. Download the required model
-ollama pull phi3
+Основные параметры настраиваются в файле `configs/config.yaml`:
+- `site_name`, `site_description`: Информация о сайте.
+- `ollama`: Настройки для подключения к Ollama (URL, модель, путь к системному промпту).
+- `database`: Путь к файлу SQLite.
 
-# 6. Install Go dependencies
-go mod tidy
-
-# 7. Start Shaman AI server
-make run
-
-# 8. Open in browser
-http://localhost:8080
-
-# Shaman AI
-
-Therapeutic AI assistant for calm voice sessions.
-
----
-
-## Installation
-
-1. Install Ollama:
-
-```bash
-brew install ollama
+Системный промпт, определяющий поведение ИИ, находится в файле `configs/prompt.txt`.

@@ -1,105 +1,67 @@
-// internal/handlers/dialogue.go
+// internal/handleers/dialogue.go
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
-	"mime/multipart"
+	"log/slog"
 	"net/http"
-	"os"
+
+	"shaman-ai/internal/config" 
+	"shaman-ai/internal/db"     
 )
 
-var systemPrompt string
-
-func LoadPrompt(path string) error {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	systemPrompt = string(content)
-	return nil
+type DialogueRequest struct {
+	Prompt string `json:"prompt"` 
 }
 
-func DialogueHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
-		return
-	}
-
-	file, _, err := r.FormFile("audio")
-	if err != nil {
-		http.Error(w, "Ошибка получения файла", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	audioData, err := io.ReadAll(file)
-	if err != nil {
-		http.Error(w, "Ошибка чтения файла", http.StatusInternalServerError)
-		return
-	}
-
-	transcript, err := transcribeAudio(audioData)
-	if err != nil {
-		http.Error(w, "Ошибка распознавания речи", http.StatusInternalServerError)
-		return
-	}
-
-	answer, err := generateAnswer(transcript)
-	if err != nil {
-		http.Error(w, "Ошибка генерации ответа", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"answer": answer,
-	})
+type DialogueResponse struct {
+	Response string `json:"response"`
 }
 
-func transcribeAudio(audioData []byte) (string, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("audio", "audio.wav")
-	part.Write(audioData)
-	writer.Close()
+func DialogueHandler(appConfig *config.Config, systemPrompt string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			slog.Warn("Неверный метод для /api/dialogue", "method", r.Method)
+			http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+			return
+		}
 
-	req, _ := http.NewRequest("POST", "http://localhost:11434/api/whisper", body)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
+		var req DialogueRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			slog.Error("Ошибка декодирования JSON в /api/dialogue", "error", err)
+			http.Error(w, "Некорректный формат запроса", http.StatusBadRequest)
+			return
+		}
+		if req.Prompt == "" {
+			slog.Warn("Получен пустой промпт в /api/dialogue")
+			http.Error(w, "Промпт не может быть пустым", http.StatusBadRequest)
+			return
+		}
+		slog.Info("Получен запрос от пользователя", "prompt", req.Prompt)
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
+		aiResponse, err := GenerateAIResponse(
+			appConfig.Ollama.URL,
+			appConfig.Ollama.Model,
+			systemPrompt,
+			req.Prompt,
+		)
+		if err != nil {
+			slog.Error("Ошибка при генерации ответа ИИ", "error", err)
+			http.Error(w, "Ошибка взаимодействия с ИИ", http.StatusInternalServerError)
+			return
+		}
+		slog.Info("Сгенерирован ответ ИИ", "response", aiResponse)
+
+		err = db.SaveDialogue(req.Prompt, aiResponse)
+		if err != nil {
+			slog.Error("Не удалось сохранить диалог в БД", "error", err)
+		}
+
+		resp := DialogueResponse{Response: aiResponse}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK) 
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			slog.Error("Ошибка кодирования JSON-ответа в /api/dialogue", "error", err)
+		}
 	}
-	defer resp.Body.Close()
-
-	var result struct {
-		Transcript string `json:"transcript"`
-	}
-	json.NewDecoder(resp.Body).Decode(&result)
-
-	return result.Transcript, nil
-}
-
-func generateAnswer(question string) (string, error) {
-	payload := map[string]string{
-		"model":  "shaman",
-		"prompt": systemPrompt + "\nПользователь сказал: " + question,
-	}
-
-	data, _ := json.Marshal(payload)
-
-	resp, err := http.Post("http://localhost:11434/api/generate", "application/json", bytes.NewReader(data))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	var result struct {
-		Response string `json:"response"`
-	}
-	json.NewDecoder(resp.Body).Decode(&result)
-
-	return result.Response, nil
 }

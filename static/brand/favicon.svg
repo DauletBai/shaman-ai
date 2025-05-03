@@ -1,3 +1,4 @@
+<!-- static/brand/favicon.svg -->
 <svg class="rounded-circle border" width="32" height="32" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
   <!-- Stroke линии (Параллельные, 45 градусов влево) -->
   <line class="stroke" x1="75" y1="75" x2="325" y2="325" />

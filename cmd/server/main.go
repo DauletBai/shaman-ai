@@ -2,64 +2,72 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"log/slog"
 	"net/http"
-	"html/template"
 
-	"shaman-ai/internal/config"
+	"shaman-ai/internal/config" 
+	"shaman-ai/internal/db"
 	"shaman-ai/internal/handlers"
-)
-
-var (
-	appConfig *config.Config
-	tmpl      *template.Template
+	"shaman-ai/internal/utils"
 )
 
 func main() {
 	config.InitLogger()
+	slog.Info("Запуск сервера shaman-ai...")
 
-	var err error
-	appConfig, err = config.LoadConfig("./configs/config.yaml")
+	configPath := "configs/config.yaml" 
+	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		log.Fatalf("Ошибка загрузки конфига: %v", err)
+		slog.Error("Критическая ошибка: не удалось загрузить конфигурацию", "path", configPath, "error", err)
+		fmt.Printf("Критическая ошибка: не удалось загрузить конфигурацию: %v\n", err)
+		return
+	}
+	slog.Info("Конфигурация успешно загружена", "site_name", cfg.SiteName)
+
+	systemPrompt, err := utils.LoadSystemPrompt(cfg.Ollama.SystemPromptPath)
+	if err != nil {
+		slog.Error("Критическая ошибка: не удалось загрузить системный промпт", "path", cfg.Ollama.SystemPromptPath, "error", err)
+		fmt.Printf("Критическая ошибка: не удалось загрузить системный промпт: %v\n", err)
+		return
+	}
+	slog.Info("Системный промпт успешно загружен")
+
+	err = db.InitDB(cfg.Database.Path)
+	if err != nil {
+		slog.Error("Критическая ошибка: не удалось инициализировать базу данных", "path", cfg.Database.Path, "error", err)
+		fmt.Printf("Критическая ошибка: не удалось инициализировать базу данных: %v\n", err)
+		// return 
+	}
+	if db.DB != nil {
+		defer db.DB.Close()
 	}
 
-	slog.Info("Конфигурация загружена", "site_name", appConfig.SiteName, "year", appConfig.CurrentYear)
+	appHandlers, err := handlers.NewAppHandlers(cfg)
+	if err != nil {
+		slog.Error("Критическая ошибка: не удалось инициализировать обработчики", "error", err)
+		fmt.Printf("Критическая ошибка: не удалось инициализировать обработчики: %v\n", err)
+		return
+	}
 
 	mux := http.NewServeMux()
 
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	slog.Info("Статические файлы настроены для раздачи из папки ./static")
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles(
-			"templates/base.html",
-			"templates/parts/head.html",
-			"templates/parts/header.html",
-			"templates/parts/footer.html",
-			"templates/pages/welcome.html",
-		))
+	mux.HandleFunc("/", appHandlers.WelcomePageHandler)           
+	mux.HandleFunc("/dashboard", appHandlers.DashboardPageHandler) 
 
-		data := map[string]interface{}{
-			"SiteName":        appConfig.SiteName,
-			"SiteDescription": appConfig.SiteDescription,
-			"CurrentYear":     appConfig.CurrentYear,
-		}
-	
-		if err := tmpl.ExecuteTemplate(w, "base.html", data); err != nil {
-			slog.Error("Ошибка рендеринга страницы", "error", err)
-			http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
-		}
-	})
+	mux.HandleFunc("/api/dialogue", handlers.DialogueHandler(cfg, systemPrompt))
 
-	handlers.InitHandlers(appConfig, tmpl)
-
-	mux.HandleFunc("/api/dialogue", handlers.DialogueHandler)
+	// !! TODO: Добавить маршруты для /login, /register, /logout, /api/sessions !!
 
 	addr := ":8080"
-	slog.Info("Запуск Shaman AI сервера", "address", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		slog.Error("Ошибка запуска сервера", "error", err)
+	slog.Info("Сервер shaman-ai запущен и слушает", "address", fmt.Sprintf("http://localhost%s", addr))
+	err = http.ListenAndServe(addr, mux)
+	if err != nil {
+		slog.Error("Критическая ошибка: не удалось запустить HTTP-сервер", "address", addr, "error", err)
+		fmt.Printf("Критическая ошибка: не удалось запустить HTTP-сервер: %v\n", err)
 	}
 }

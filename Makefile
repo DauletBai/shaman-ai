@@ -1,6 +1,4 @@
-run:
-	go run ./cmd/server/main.go
-
+# Makefile for Ollama
 install-ollama:
 	brew install ollama
 
@@ -10,5 +8,5 @@ start-ollama:
 pull-model:
 	ollama pull phi3
 
-start:
-	make run
+run:
+	go run ./cmd/server/main.go
